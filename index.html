@@ -1,0 +1,274 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Residência em Enfermagem</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Roboto:wght@300;400&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0d1b2a 0%, #1b263b 100%);
+            color: #e0e0e0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.1), transparent 70%);
+            z-index: 0;
+        }
+
+        header {
+            text-align: center;
+            padding: 40px 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-bottom: 2px solid #00ffff;
+            position: relative;
+            z-index: 1;
+        }
+
+        h1 {
+            font-family: 'Orbitron', sans-serif;
+            font-size: 3em;
+            color: #00ffff;
+            text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #ff00ff;
+            animation: neonGlow 2s infinite alternate;
+        }
+
+        @keyframes neonGlow {
+            from {
+                text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffff, 0 0 30px #ff00ff;
+            }
+            to {
+                text-shadow: 0 0 20px #00ffff, 0 0 30px #00ffff, 0 0 40px #ff00ff;
+            }
+        }
+
+        .creator {
+            font-size: 1.2em;
+            color: #ff00ff;
+            margin-top: 10px;
+            text-shadow: 0 0 5px #ff00ff;
+        }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+            z-index: 1;
+            position: relative;
+        }
+
+        .tabs .tab {
+            padding: 15px 25px;
+            margin: 0 5px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid #00ffff;
+            border-radius: 25px;
+            color: #00ffff;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 1.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .tabs .tab:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.5);
+        }
+
+        .tabs .tab.active {
+            background: #00ffff;
+            color: #0d1b2a;
+            box-shadow: 0 0 20px #00ffff;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 30px;
+            margin: 0 auto;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid #ff00ff;
+            box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+            z-index: 1;
+            position: relative;
+            animation: fadeIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .tab-content h2 {
+            font-family: 'Orbitron', sans-serif;
+            color: #00ffff;
+            margin-bottom: 20px;
+            text-shadow: 0 0 5px #00ffff;
+        }
+
+        .tab-content ul {
+            list-style: none;
+        }
+
+        .tab-content li {
+            margin: 15px 0;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-content li:hover {
+            background: rgba(0, 255, 255, 0.2);
+            transform: translateX(5px);
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.3);
+        }
+
+        .tab-content a {
+            color: #ff00ff;
+            text-decoration: none;
+            font-weight: 300;
+        }
+
+        .tab-content a:hover {
+            text-decoration: underline;
+            color: #00ffff;
+        }
+
+        .tab-content p {
+            color: #e0e0e0;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Residência em Enfermagem</h1>
+        <div class="creator">Idealizadora: Letícia</div>
+    </header>
+
+    <div class="tabs">
+        <div class="tab active" onclick="openTab(event, 'pdf-tab')">PDF</div>
+        <div class="tab" onclick="openTab(event, 'videos-tab')">Vídeos</div>
+        <div class="tab" onclick="openTab(event, 'audios-tab')">Áudios</div>
+        <div class="tab" onclick="openTab(event, 'links-tab')">Links</div>
+        <div class="tab" onclick="openTab(event, 'outros-tab')">Outros</div>
+    </div>
+
+    <div id="pdf-tab" class="tab-content active">
+        <h2>PDFs para Estudo</h2>
+        <ul>
+            <li><a href="#">Manual de Procedimentos em Enfermagem - 2025</a> (Atualizado em 26/05/2025)</li>
+            <li><a href="#">Protocolos de Emergência em UTI</a> (Revisado em 2025)</li>
+            <li><a href="#">Guia de Cuidados Paliativos</a> (Edição Futurística)</li>
+        </ul>
+    </div>
+
+    <div id="videos-tab" class="tab-content">
+        <h2>Vídeos Educativos</h2>
+        <ul>
+            <li><a href="#">Técnicas Avançadas de Curativos (Vídeo 4K)</a> - Publicado em 26/05/2025</li>
+            <li><a href="#">Simulação de Atendimento em Emergências</a> - Com tecnologia VR</li>
+            <li><a href="#">Aula Magna: O Futuro da Enfermagem</a> - Palestra de Letícia</li>
+        </ul>
+    </div>
+
+    <div id="audios-tab" class="tab-content">
+        <h2>Áudios para Aprendizado</h2>
+        <ul>
+            <li><a href="#">Podcast: Ética em Enfermagem - Ep. 1</a> (26/05/2025)</li>
+            <li><a href="#">Áudio-Aula: Anatomia Avançada</a> (Narrado por Letícia)</li>
+            <li><a href="#">Meditação Guiada para Enfermeiros</a> (Relaxamento)</li>
+        </ul>
+    </div>
+
+    <div id="links-tab" class="tab-content">
+        <h2>Links Úteis</h2>
+        <ul>
+            <li><a href="#">Conselho Federal de Enfermagem (COFEN)</a> - Recursos atualizados</li>
+            <li><a href="#">Plataforma de Cursos Online - Enfermagem 2030</a></li>
+            <li><a href="#">Fórum Internacional de Enfermagem</a> - Discussões futurísticas</li>
+        </ul>
+    </div>
+
+    <div id="outros-tab" class="tab-content">
+        <h2>Outros Recursos</h2>
+        <ul>
+            <li><p>Simulador de Casos Clínicos (App 3D) - Disponível para download</p></li>
+            <li><p>Quiz Interativo: Teste seus Conhecimentos em Enfermagem</p></li>
+            <li><p>Comunidade Virtual: Participe do grupo de estudos de Letícia</p></li>
+        </ul>
+    </div>
+
+    <script>
+        function openTab(evt, tabName) {
+            document.querySelectorAll('.tabs .tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            evt.currentTarget.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+        }
+    </script>
+</body>
+</html>
