@@ -99,9 +99,9 @@
 
         .creator {
             font-size: clamp(1rem, 2.5vw, 1.2rem);
-            color: #ff00ff;
+            color: #cc99ff;
             margin-top: 1vh;
-            text-shadow: 0 0 5px #ff00ff;
+            text-shadow: 0 0 5px #cc99ff, 0 0 10px rgba(204, 153, 255, 0.5);
         }
 
         .tabs {
@@ -148,8 +148,8 @@
             max-width: 800px;
             background: rgba(255, 255, 255, 0.05);
             border-radius: 15px;
-            border: 1px solid #ff00ff;
-            box-shadow: 0 0 15px rgba(255, 0, 255, 0.3);
+            border: 1px solid #cc99ff;
+            box-shadow: 0 0 15px rgba(204, 153, 255, 0.3);
             z-index: 1;
             position: relative;
             animation: fadeIn 0.5s ease;
@@ -194,10 +194,11 @@
         }
 
         .tab-content a {
-            color: #ff00ff;
+            color: #cc99ff;
             text-decoration: none;
             font-weight: 300;
             font-size: clamp(0.9rem, 2vw, 1rem);
+            text-shadow: 0 0 5px rgba(204, 153, 255, 0.5);
         }
 
         .tab-content a:hover {
@@ -297,9 +298,15 @@
     </div>
 
     <script>
+        const hoverSound = new Audio('https://github.com/ekpb-cyborg/residencia_enfa/raw/refs/heads/main/Botaos/botao1.mp3');
+        const clickSound = new Audio('https://github.com/ekpb-cyborg/residencia_enfa/raw/refs/heads/main/Botaos/botao2.mp3');
+        let soundOn = true;
+
         function openTab(evt, tabName) {
             const tabButtons = document.querySelectorAll('.tabs .tab');
             const tabContents = document.querySelectorAll('.tab-content');
+
+            if (soundOn) clickSound.play().catch(err => console.warn('Erro ao tocar botao2.mp3:', err));
 
             tabButtons.forEach(tab => {
                 tab.classList.remove('active');
@@ -311,6 +318,15 @@
             evt.currentTarget.setAttribute('aria-selected', 'true');
             document.getElementById(tabName).classList.add('active');
         }
+
+        document.querySelectorAll('.tabs .tab, .tab-content a').forEach(element => {
+            element.addEventListener('mouseover', () => {
+                if (soundOn) hoverSound.play().catch(err => console.warn('Erro ao tocar botao1.mp3:', err));
+            });
+            element.addEventListener('click', () => {
+                if (soundOn) clickSound.play().catch(err => console.warn('Erro ao tocar botao2.mp3:', err));
+            });
+        });
     </script>
 </body>
 </html>
